@@ -2,12 +2,12 @@ module Gadgeteer
   def self.included(base)
     if base.is_a?(Class)
       base.class_eval do
-        @@public_keys = Dir[Rails.root.join('config', 'certs', '*.cert')].inject({}) do |keys, file|
+        @@public_keys = Dir[File.join(Rails.root, 'config', 'certs', '*.cert')].inject({}) do |keys, file|
           cert = OpenSSL::X509::Certificate.new(File.read(file))
           pkey = OpenSSL::PKey::RSA.new(cert.public_key)
           keys.merge(File.basename(file)[0..-6] => pkey)
         end
-        @@oauth_secrets = YAML.load_file(Rails.root.join('config', 'oauth_secrets.yml')) rescue {}
+        @@oauth_secrets = YAML.load_file(File.join(Rails.root, 'config', 'oauth_secrets.yml')) rescue {}
         cattr_accessor :public_keys, :oauth_secrets
       end
     end
