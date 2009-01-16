@@ -1,49 +1,49 @@
 Gadgeteer simplifies OpenSocial Gadget development by giving you helpers you can use in your Rails application to verify Signed Requests and access OpenSocial data.
 
-# Requirements
+= Requirements
 
-Gadgeteer requires the [oauth gem](http://github.com/pelle/oauth/tree/master) (0.2.7+).
+Gadgeteer requires the {oauth gem}[http://github.com/pelle/oauth/tree/master] (0.2.7+).
 
-*Note*: the current version of the oauth gem doesn't comply completely with the OAuth standard, and also doesn't work with Rails 2.3+. You can use [my fork](http://github.com/lackac/oauth/tree/master), until the fixes are merged in.
+*Note*: the current version of the oauth gem doesn't comply completely with the OAuth standard, and also doesn't work with Rails 2.3</tt>. You can use {lackac's fork}[http://github.com/lackac/oauth/tree/master], until the fixes are merged in.
 
-# Usage
+= Usage
 
 You can configure the secrets and public keys used by your application two ways.
 
-For consumer secrets you can put your consumer key/secret pairs into `config/oauth_secrets.yml`:
+For consumer secrets you can put your consumer key/secret pairs into <tt>config/oauth_secrets.yml</tt>:
 
-    key: secret
+  key: secret
 
 or you could setup those in your ApplicationController:
 
-    class ApplicationController < ActionController::Base
-    
-      oauth_secrets['key'] = 'secret'
-    
-    end
+  class ApplicationController < ActionController::Base
+  
+    oauth_secrets['key'] = 'secret'
+  
+  end
 
-For public keys you can put the certificates into `config/certs` with `.cert` extension, or you could setup the public keys in your ApplicationController by creating a `OpenSSL::PKey::RSA` object and adding it to the `public_keys` hash:
+For public keys you can put the certificates into <tt>config/certs</tt> with <tt>.cert</tt> extension, or you could setup the public keys in your ApplicationController by creating a <tt>OpenSSL::PKey::RSA</tt> object and adding it to the <tt>public_keys</tt> hash:
 
-    class ApplicationController < ActionController::Base
-    
-      public_keys['example.com'] = OpenSSL::PKey::RSA.new(OpenSSL::X509::Certificate.new(CERT).public_key)
-    
-    end
+  class ApplicationController < ActionController::Base
+  
+    public_keys['example.com'] = OpenSSL::PKey::RSA.new(OpenSSL::X509::Certificate.new(CERT).public_key)
+  
+  end
 
-You can use the `verify_signature` method as a before_filter in your controllers to make sure the signed requests are correct:
+You can use the <tt>verify_signature</tt> method as a before_filter in your controllers to make sure the signed requests are correct:
 
-    class SecretNotesController < ActionController::Base
-    
-      before_filter :verify_signature
-    
-    end
+  class SecretNotesController < ActionController::Base
+  
+    before_filter :verify_signature
+  
+  end
 
-The correct secret or public key will be used for verification based on the current request. If the `xoauth_signature_publickey` parameter is set, the corresponding public key will be used. Otherwise the consumer secret connected to the key found in the `oauth_consumer_key` parameter will be used. The singature will be verified based on this key/secret pair and the singature method set in the parameters.
+The correct secret or public key will be used for verification based on the current request. If the <tt>xoauth_signature_publickey</tt> parameter is set, the corresponding public key will be used. Otherwise the consumer secret connected to the key found in the <tt>oauth_consumer_key</tt> parameter will be used. The singature will be verified based on this key/secret pair and the singature method set in the parameters.
 
-If there are OpenSocial related request parameters, you can access them with the `open_social` method:
+If there are OpenSocial related request parameters, you can access them with the <tt>open_social</tt> method:
 
-    def index
-      @secret_notes = SecretNote.find_by_profile_id(open_social[:viewer_id])
-    end
+  def index
+    @secret_notes = SecretNote.find_by_profile_id(open_social[:viewer_id])
+  end
 
-Copyright (c) 2009 László Bácsi, released under the MIT license
+Copyright (c) 2009 Virgo Systems Kft., released under the MIT license
