@@ -42,6 +42,12 @@ module Gadgeteer
     end
 
     def open_social
-      @_open_social ||= params.inject({}) {|h, (k,v)| k =~ /^open_?social_(.*)$/ ? h.merge($1 => v) : h}.with_indifferent_access
+      @_open_social ||= params.inject({}) do |h, (k,v)|
+        if k =~ /^(open_?social|os)_(.*)$/
+          h.merge($2 => v)
+        else
+          h
+        end
+      end.with_indifferent_access
     end
 end
