@@ -11,6 +11,7 @@ module Gadgeteer
         cattr_accessor :public_keys, :oauth_secrets
       end
     end
+    base.helper_method :open_social
   end
 
   protected
