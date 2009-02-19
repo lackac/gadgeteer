@@ -122,8 +122,8 @@ module Gadgeteer
         opts.on('-r', '--rails')      { @options.rails = true }
         opts.on('-s', '--sinatra')    { @options.sinatra = true }
         opts.on('-f', '--force')      { @options.force = true }
-        opts.on('-a', '--author')     { |x| @options.author = x }
-        opts.on('-e', '--email')      { |x| @options.email = x }
+        opts.on('-a', '--author AUTHOR')  { |x| @options.author = x }
+        opts.on('-e', '--email EMAIL')    { |x| @options.email = x }
 
         opts.parse!(@arguments) rescue return false
 
