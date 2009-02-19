@@ -12,6 +12,8 @@ begin
     s.homepage = "http://github.com/virgo/gadgeteer"
     s.description = "Making it easy to develop OpenSocial gadgets with Rails or Sinatra."
     s.authors = ["Laszlo Bacsi"]
+    s.executables = ["gadgeteer"]
+    s.files = FileList['lib/**/*.rb', 'bin/*', '[A-Z]*', 'test/**/*', 'templates/*', 'javascripts/*.js', 'rails/*'].to_a
   end
 rescue LoadError
   puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
