@@ -23,6 +23,9 @@ module Gadgeteer
     end
     if base.respond_to?(:helper_method)
       base.helper_method :open_social, :os_viewer, :os_owner
+      base.helper Gadgeteer::ViewHelpers
+    else
+      base.send :include, Gadgeteer::ViewHelpers
     end
   end
 
