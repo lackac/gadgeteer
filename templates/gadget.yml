@@ -1,0 +1,23 @@
+defaults: &defaults
+  module_prefs:
+    title: "<%= @options.title %>"
+    author: "<%= @options.author %>"
+    author_email: "<%= @options.email %>"
+  requires:
+    - opensocial-0.8
+    - dynamic-height
+    - settitle
+    - views
+    - setprefs
+
+development:
+  <<: *defaults
+  appid: 1234567890
+
+test:
+  <<: *defaults
+  appid: 1234567890
+
+production:
+  <<: *defaults
+  appid: 1234567890

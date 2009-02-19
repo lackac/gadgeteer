@@ -1,0 +1,11 @@
+!!! XML
+%Module
+  %ModulePrefs{<%= @options.model %>.module_prefs}
+    - <%= @options.model %>.requires.each do |r|
+      %Require{:feature => r}/
+  = gadget_content_tag do
+<% if @options.sinatra %>
+    = haml :canvas
+<% else %>
+    = render :partial => 'canvas'
+<% end %>

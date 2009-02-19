@@ -1,0 +1,224 @@
+#!/usr/bin/env ruby 
+
+$usage = <<USAGE
+== Synopsis 
+  This script generates some files for you to start coding your gadget with.
+
+== Examples
+  For a Rails project:
+    gadgeteer --rails Gadget
+
+  For a Sinatra project:
+    gadgeteer --sinatra Gadget
+
+== Usage 
+  gadgeteer <--rails|--sinatra> [options] ModelName
+
+  For help use: gadgeteer -h
+
+== Options
+  -h, --help          Displays help message
+  -V, --version       Display the version, then exit
+  -q, --quiet         Output as little as possible, overrides verbose
+  -v, --verbose       Verbose output
+  -r, --rails         Generates files for a Rails app
+  -s, --sinatra       Generates files for a Sinatra app
+  -f, --force         Overwrite existing files
+  -a, --author me     Name of the author (for gadget.xml)
+  -e, --email i@me.us Email address of the author (for gadget.xml)
+
+== Author
+  László Bácsi
+
+== Copyright
+  Copyright (c) 2009 Virgo Systems Kft. Licensed under the MIT License:
+  http://www.opensource.org/licenses/mit-license.php
+USAGE
+
+require 'optparse' 
+require 'rdoc/usage'
+require 'ostruct'
+require 'date'
+
+require 'erb'
+require 'yaml'
+require 'activesupport'
+
+module Gadgeteer
+  class App
+    VERSION_HASH = YAML.load_file(File.join(File.dirname(__FILE__), '..', 'VERSION.yml'))
+    VERSION = "#{VERSION_HASH[:major]}.#{VERSION_HASH[:minor]}.#{VERSION_HASH[:patch]}"
+
+    MAPPING = {
+      :rails => {
+        :files => {
+          "gadget.yml" => "config/:singular.yml",
+          "gadget.rb" => "app/models/:singular.rb",
+          "gadget.haml" => "app/views/:plural/show.xml.haml",
+          "canvas.haml" => "app/views/:plural/_canvas.html.haml",
+          "gadget.js" => "public/javascripts/:singular.js",
+          "gadgets_controller.rb" => "app/controllers/:plural_controller.rb"
+        },
+        :help => <<-HELP
+    Add this to your Rails application routes:
+
+      map.resource ::singular
+        HELP
+      },
+      :sinatra => {
+        :files => {
+          "gadget.yml" => "config/:singular.yml",
+          "gadget.rb" => ":singular.rb",
+          "gadget.haml" => "views/:singular.haml",
+          "canvas.haml" => "views/canvas.haml",
+          "gadget.js" => "public/javascripts/:singular.js"
+        },
+        :help => <<-HELP
+    Add this to your Sinatra application:
+
+      require 'sinatra/gadgeteer'
+      require ':singular'
+
+      get '/:singular.xml' do
+        haml ::singular
+      end
+        HELP
+      }
+    }
+
+    attr_reader :options
+
+    def initialize(arguments, stdin)
+      @arguments = arguments
+      @stdin = stdin
+
+      # Set defaults
+      @options = OpenStruct.new
+      @options.verbose = true
+      @options.quiet = false
+      @options.author = "Calvin"
+      @options.email = "calvin@example.com"
+    end
+
+    # Parse options, check arguments, then process the command
+    def run
+      if parsed_options? && arguments_valid?
+        process_arguments            
+        process_command
+      else
+        output_usage
+      end
+    end
+
+    protected
+
+      def parsed_options?
+        # Specify options
+        opts = OptionParser.new 
+        opts.on('-V', '--version')    { output_version ; exit 0 }
+        opts.on('-h', '--help')       { output_help }
+        opts.on('-v', '--verbose')    { @options.verbose = true }  
+        opts.on('-q', '--quiet')      { @options.quiet = true }
+        opts.on('-r', '--rails')      { @options.rails = true }
+        opts.on('-s', '--sinatra')    { @options.sinatra = true }
+        opts.on('-f', '--force')      { @options.force = true }
+        opts.on('-a', '--author')     { |x| @options.author = x }
+        opts.on('-e', '--email')      { |x| @options.email = x }
+
+        opts.parse!(@arguments) rescue return false
+
+        process_options
+      end
+
+      # Performs post-parse processing on options
+      def process_options
+        @options.verbose = false if @options.quiet
+        @options.rails ^ @options.sinatra
+      end
+
+      # True if required arguments were provided
+      def arguments_valid?
+        true if @arguments.length == 1 
+      end
+
+      # Setup the arguments
+      def process_arguments
+        @options.model    = @arguments.first.classify
+        @options.title    = @options.model.underscore.humanize
+        @options.singular = @options.model.underscore
+        @options.plural   = @options.model.tableize
+      end
+
+      def output_help
+        output_version
+        usage_and_exit! #exits app
+      end
+
+      def output_usage
+        usage_and_exit! # gets usage from comments above
+      end
+
+      # Shamefully stolen from RDoc#usage. We cannot use RDoc::usage because
+      # RubyGems will call this from a wrapper, and #usage is hardcoded to look
+      # at the top-level file instead of the current one. I have changed this
+      # code to instead just parse a string.
+      def usage_and_exit!
+        markup = SM::SimpleMarkup.new
+        flow_convertor = SM::ToFlow.new
+
+        flow = markup.convert($usage, flow_convertor)
+
+        options = RI::Options.instance
+        formatter = options.formatter.new(options, "")
+        formatter.display_flow(flow)
+
+        exit(0)
+      end
+
+      def output_version
+        puts "#{$0} version #{VERSION}"
+      end
+
+      def process_command
+        key = @options.rails ? :rails : :sinatra
+        file_mapping = MAPPING[key][:files]
+        help = MAPPING[key][:help]
+
+        # Templates
+        file_mapping.each do |filename, target|
+          template = File.join(File.dirname(__FILE__), '..', 'templates', filename)
+          target = target.gsub(':singular', @options.singular).gsub(':plural', @options.plural)
+          if File.exists?(target) and not @options.force
+            puts "Skipping existing file #{target}" if @options.verbose
+          else
+            puts "Writing file #{target}" if @options.verbose
+            FileUtils.mkdir_p(File.dirname(target))
+            File.open(target, "w") do |f|
+              f.write(ERB.new(File.read(template), nil, "<>").result(binding))
+            end
+          end
+        end
+
+        # Javascript files
+        Dir[File.join(File.dirname(__FILE__), '..', 'javascripts', '*.js')].each do |jsfile|
+          filename = File.basename(jsfile)
+          target = "public/javascripts/#{filename}"
+          if File.exists?(target) and not @options.force
+            puts "Skipping existing file #{target}" if @options.verbose
+          else
+            puts "Writing file #{target}" if @options.verbose
+            FileUtils.mkdir_p(File.dirname(target))
+            FileUtils.cp jsfile, target
+          end
+        end
+
+        # Help
+        puts
+        puts(help.gsub(':singular', @options.singular).gsub(':plural', @options.plural))
+      end
+  end
+end
+
+# Create and run the application
+app = Gadgeteer::App.new(ARGV, STDIN)
+app.run
