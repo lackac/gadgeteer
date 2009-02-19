@@ -81,9 +81,10 @@ $.gadgeteer = function(callback, options) {
     setTimeout(function() {
       if ($.gadgeteer.viewer && $.gadgeteer.owner) {
         // Navigate away if params tell so
-        var navTo = gadgets.views.getParams().navigateTo;
+        var params = gadgets.views.getParams();
+        var navTo = params.navigateTo;
         if (navTo) {
-          $.gadgeteer.simpleRequest(navTo);
+          $.gadgeteer.simpleRequest(navTo, params.signedNavigate);
         } else {
           callback();
         }
