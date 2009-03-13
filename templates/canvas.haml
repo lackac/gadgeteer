@@ -4,9 +4,9 @@
       %script{:src => "/javascripts/#{jsfile}.js", :type => "text/javascript"}
     %script{:type => "text/javascript"}
 <% if @options.sinatra %>
-      == backendHost = '#{request.scheme}://#{request.host}';
+      == backendHost = "#{request.scheme}://#{request.host}";
 <% else %>
-      == backendHost = '#{request.protocol}#{request.host_with_port}';
+      == backendHost = "#{request.protocol}#{request.host_with_port}";
 <% end %>
     %script{:src => "/javascripts/<%= @options.singular %>.js", :type => "text/javascript"}
   %body
