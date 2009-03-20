@@ -1,3 +1,5 @@
+(function($) {
+
 $.gadgeteer = function(callback, options) {
   // If called with callback, notify it if we're ready
   if ($.isFunction(callback)) {
@@ -215,6 +217,7 @@ $.extend($.gadgeteer, {
 
 });
 
-
 // Initialize gadgeteer
 $($.gadgeteer);
+
+})(jQuery);
