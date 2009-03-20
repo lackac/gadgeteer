@@ -63,6 +63,7 @@ module Gadgeteer
     Add this to your Rails application:
 
       # config/environment.rb
+      config.gem "gadgeteer"
       config.gem "haml"
 
       # config/routes.rb
