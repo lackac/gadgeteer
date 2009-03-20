@@ -1,3 +1,10 @@
+/*! Copyright (c) 2009 Virgo Systems Kft. (http://virgo.hu)
+ * Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
+ *
+ * Version: 1.0.2
+ * Requires opensocial-jQuery 0.5+
+ */
+
 (function($) {
 
 $.gadgeteer = function(callback, options) {
