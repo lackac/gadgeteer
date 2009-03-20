@@ -60,8 +60,12 @@ module Gadgeteer
           "gadgets_controller.rb" => "app/controllers/:plural_controller.rb"
         },
         :help => <<-HELP
-    Add this to your Rails application routes:
+    Add this to your Rails application:
 
+      # config/environment.rb
+      config.gem "haml"
+
+      # config/routes.rb
       map.resource ::singular
         HELP
       },
