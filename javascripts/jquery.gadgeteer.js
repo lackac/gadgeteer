@@ -1,8 +1,8 @@
 /*! Copyright (c) 2009 Virgo Systems Kft. (http://virgo.hu)
  * Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.0.2
- * Requires opensocial-jQuery 0.5+
+ * Version: 0.2.5
+ * Requires opensocial-jQuery 1.0+
  */
 
 (function($) {
@@ -56,7 +56,7 @@ $.gadgeteer = function(callback, options) {
           type: form.attr('method') || 'GET',
           data: params.join("&"),
           dataType: 'html',
-          auth: 'SIGNED',
+          oauth: 'signed',
           target: target,
           complete: function(request, status) {
             if (submit) {
@@ -105,7 +105,7 @@ $.gadgeteer = function(callback, options) {
           type: 'GET',
           data: $.param($.gadgeteer.viewer.osParams()) + '&' + $.param($.gadgeteer.owner.osParams()),
           dataType: 'html',
-          auth: settings.auth,
+          oauth: settings.auth,
           target: settings.target
         });
       }
@@ -174,7 +174,7 @@ $.extend($.gadgeteer, {
       data: $.param(params),
       url: href.charAt(0) == '/' ? $.gadgeteer.host + href : href,
       dataType: 'html',
-      auth: signed && 'SIGNED',
+      oauth: signed && 'signed',
       target: $($.gadgeteer.defaultTarget)
     });
   },
@@ -212,7 +212,7 @@ $.extend($.gadgeteer, {
       url: href,
       data: params,
       dataType: target ? 'html' : null,
-      auth: link.hasClass('signed') ? 'SIGNED' : null,
+      oauth: link.hasClass('signed') ? 'signed' : null,
       target: target
     });
   },
