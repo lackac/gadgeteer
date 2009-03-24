@@ -3829,14 +3829,14 @@ jQuery.each([ "Height", "Width" ], function(i, name){
    * View
    */
    
-  $.view = function(name, data) {
+  $.view = function(name, data, ownerId) {
     if (name === undefined) 
       return gadgets.views.getCurrentView().getName();
     var views = gadgets.views.getSupportedViews();
     for (var type in views) {
       var view = views[type];
       if (view.getName() === name)
-        return gadgets.views.requestNavigateTo(view, data || {});
+        return gadgets.views.requestNavigateTo(view, data || {}, ownerId);
     }
   };
 
