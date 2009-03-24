@@ -30,6 +30,7 @@ module Gadgeteer
   end
 
   class SecretMissingError < StandardError; end
+  class VerificationFailedError < StandardError; end
 
   module ViewHelpers
     def gadget_content_tag(view = nil, &block)
@@ -77,12 +78,12 @@ module Gadgeteer
         # return the token secret and the consumer secret
         [nil, secret]
       end
-      pass = signature.verify
+      signature.verify || raise(VerificationFailedError, "Signature verification failed")
     end
 
     def verify_signature
       verify_signature!
-    rescue OAuth::Signature::UnknownSignatureMethod, SecretMissingError
+    rescue OAuth::Signature::UnknownSignatureMethod, SecretMissingError, VerificationFailedError
       false
     end
 
