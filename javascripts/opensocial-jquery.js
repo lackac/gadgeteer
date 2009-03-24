@@ -1,5 +1,5 @@
 /**
- * opensocial-jquery 0.5.1
+ * opensocial-jquery 1.0.1
  * http://code.google.com/p/opensocial-jquery/
  *
  * Enhancing of jQuery.ajax with JSDeferred
@@ -2555,6 +2555,12 @@ var jsc = now();
 
 jQuery.extend({
 	get: function( url, data, callback, type ) {
+		var off = url.indexOf(" ");
+		if ( off >= 0 ) {
+			var oauth = url.slice(off + 1, url.length);
+			url = url.slice(0, off);
+		}
+
 		// shift arguments if data argument was ommited
 		if ( jQuery.isFunction( data ) ) {
 			callback = data;
@@ -2566,7 +2572,8 @@ jQuery.extend({
 			url: url,
 			data: data,
 			success: callback,
-			dataType: type
+			dataType: type,
+			oauth: oauth
 		});
 	},
 
@@ -2579,6 +2586,12 @@ jQuery.extend({
 	},
 
 	post: function( url, data, callback, type ) {
+		var off = url.indexOf(" ");
+		if ( off >= 0 ) {
+			var oauth = url.slice(off + 1, url.length);
+			url = url.slice(0, off);
+		}
+
 		if ( jQuery.isFunction( data ) ) {
 			callback = data;
 			data = {};
@@ -2589,7 +2602,8 @@ jQuery.extend({
 			url: url,
 			data: data,
 			success: callback,
-			dataType: type
+			dataType: type,
+			oauth: oauth
 		});
 	},
 
@@ -2745,9 +2759,6 @@ jQuery.extend({
 			xhr.open(type, s.url, s.async, s.username, s.password);
 		else
 			xhr.open(type, s.url, s.async);
-		
-		if( s.auth && jQuery.isFunction(xhr.setAuthorizationType) )
-      xhr.setAuthorizationType(s.auth);
 
 		// Need an extra try/catch for cross domain requests in Firefox 3
 		try {
@@ -2855,7 +2866,7 @@ jQuery.extend({
 		// Send the data
 		try {
 //			xhr.send(s.data);
-			xhr.send(s.data, s.dataType);
+			xhr.send(s.data, s);
 
 		} catch(e) {
 			jQuery.handleError(s, xhr, null, e);
@@ -3731,6 +3742,7 @@ jQuery.each([ "Height", "Width" ], function(i, name){
     orkut: /orkut/.test(synd),
     hi5: /hi5/.test(synd),
     myspace: /msappspace/.test(location.host),
+    goohome: /goohome/.test(synd),
     sandbox: /sandbox/.test(synd) ||
       /sandbox/.test(parent) ||
       /sandbox/.test(location.host) ||
@@ -3749,9 +3761,8 @@ jQuery.each([ "Height", "Width" ], function(i, name){
    * Preference
    */
 
-  var prefs = new gadgets.Prefs();
-  
   $.pref = function(key, value) {
+    var prefs = new gadgets.Prefs();
     var pairs = key;
 
     if (key.constructor === String)
@@ -3781,6 +3792,10 @@ jQuery.each([ "Height", "Width" ], function(i, name){
       return v.replace(/%7C/g, '|')
     });
   };
+
+  $.msg = function(key) {
+    return new gadgets.Prefs().getMsg(key);
+  };
   
   /**
    * Window
@@ -3794,7 +3809,9 @@ jQuery.each([ "Height", "Width" ], function(i, name){
 
   $.fn.adjustHeight = function(height) {
     if (this[0] === window)
-      gadgets.window.adjustHeight(height);
+      setTimeout(function() {
+        gadgets.window.adjustHeight(height);
+      }, 0);
     return this;
   };
 
@@ -3812,14 +3829,14 @@ jQuery.each([ "Height", "Width" ], function(i, name){
    * View
    */
    
-  $.view = function(name, data, ownerId) {
+  $.view = function(name, data) {
     if (name === undefined) 
       return gadgets.views.getCurrentView().getName();
     var views = gadgets.views.getSupportedViews();
     for (var type in views) {
       var view = views[type];
       if (view.getName() === name)
-        return gadgets.views.requestNavigateTo(view, data || {}, ownerId);
+        return gadgets.views.requestNavigateTo(view, data || {});
     }
   };
 
@@ -3833,7 +3850,96 @@ jQuery.each([ "Height", "Width" ], function(i, name){
     }
     return names;
   };
-  
+
+  /**
+   * Flash
+   */
+if (gadgets.flash) {
+
+  $.flash = {
+    version: gadgets.flash.getMajorVersion()
+  };
+
+  $.fn.flash = function(url, data) {
+    data = $.extend(true, {}, data);
+    for (var key in data)
+      if (key.toLowerCase() == 'flashvars' && data[key] && typeof(data[key]) != 'string')
+         data[key] = jQuery.param(data[key]);
+    return this.each(function() {
+      gadgets.flash.embedFlash(url, this, $.flash.version, data);
+    });
+  };
+
+}
+
+  /**
+   * MiniMessage
+   */
+if (gadgets.MiniMessage) {
+
+  $.fn.minimessage = function(fn) {
+    return this.each(function(i, n) {
+      if (n.parentNode)
+        n.parentNode.removeChild(n);
+      new gadgets.MiniMessage()
+        .createDismissibleMessage(n, function() {
+          return (fn || function() {}).apply(n) !== false;
+      });
+    });
+  };
+
+} // if (gadgets.MiniMessage) {
+
+  /**
+   * Tabs
+   */
+if (gadgets.TabSet) {
+
+  $.fn.tabs = function(fn) {
+    return this.each(function() {
+      var tabset = new gadgets.TabSet(null, null, this);
+      tabset.alignTabs('left');
+      $('ul', this)
+        .find('li a')
+        .each(function(i) {
+          var content = $('#' + this.href.split('#')[1]).get(0); 
+          tabset.addTab($(this).html(), {
+            tooltip: this.title,
+            contentContainer: content,
+            callback: function () {
+              if (fn) fn.apply(content, [i, content]);
+            }
+          });
+        })
+      .end()
+      .remove();
+    });
+  };
+
+} // if (gadgets.TabSet) {
+
+  /**
+   * PubSub
+   */
+if (gadgets.pubsub) {
+
+  $.pub = function(channel, data) {
+    gadgets.pubsub.publish(channel, data);
+  };
+
+  $.sub = function(channel, fn) {
+    gadgets.pubsub.subscribe(channel, fn);
+  };
+
+} // if (gadgets.pubsub) {
+
+  /**
+   * Skins
+   */
+if (gadgets.skins) {
+
+} // if (gadgets.skins) {
+
 })(jQuery);
 (function($) {
 
@@ -3855,8 +3961,9 @@ jQuery.each([ "Height", "Width" ], function(i, name){
       this.responseHeaders = {};
     },
 
-    send: function(data, dataType) {
+    send: function(data, s) {
       var self = this;
+      var dataType = s.dataType;
       
       var opt_params = [];
       opt_params[gadgets.io.RequestParameters.METHOD] = self.type;
@@ -3865,12 +3972,13 @@ jQuery.each([ "Height", "Width" ], function(i, name){
         dataType === 'xml' && gadgets.io.ContentType.DOM ||
         dataType === 'feed' && gadgets.io.ContentType.FEED ||
         gadgets.io.ContentType.TEXT;
-      if (this.authorizationType)
-        opt_params[gadgets.io.RequestParameters.AUTHORIZATION] = gadgets.io.AuthorizationType[this.authorizationType.toUpperCase()];
-        
       
       if (data)
         opt_params[gadgets.io.RequestParameters.POST_DATA] = data;
+
+      if (s.oauth == 'signed')
+        opt_params[gadgets.io.RequestParameters.AUTHORIZATION] =
+          gadgets.io.AuthorizationType.SIGNED;
 
       if (dataType == 'feed')
         opt_params['NUM_ENTRIES'] = 10;
@@ -3918,7 +4026,7 @@ jQuery.each([ "Height", "Width" ], function(i, name){
           } else {
             self.status = res.rc;
             //self.statusText = 'OK';
-            self.responseHeaders = res.headers;
+            self.responseHeaders = res.headers || {};
             self.responseText = res.text;
 
             if (dataType == 'xml')
@@ -3946,11 +4054,6 @@ jQuery.each([ "Height", "Width" ], function(i, name){
   
     getResponseHeader: function(header) {
       return this.responseHeaders[header];
-    },
-  
-    // set authentication type
-    setAuthorizationType: function(auth) {
-      this.authorizationType = auth;
     }
   };
 
@@ -3971,6 +4074,10 @@ jQuery.each([ "Height", "Width" ], function(i, name){
     return jQuery.get(url, data, callback, 'feed');
   };
 
+  $.proxy = function(url) {
+    return gadgets.io.getProxyUrl(url);
+  };
+
 })(jQuery);
 (function($) {
   
@@ -3980,9 +4087,14 @@ jQuery.each([ "Height", "Width" ], function(i, name){
   /**
    * Environment
    */
+if (opensocial) {
 
-  $.container.domain = opensocial.getEnvironment().getDomain();
-  
+  $(function() {
+    $.container.domain = opensocial.getEnvironment().getDomain();
+  });
+
+} // if (opensocial) {
+
   /**
    * DataRequest
    */
@@ -4001,7 +4113,10 @@ jQuery.each([ "Height", "Width" ], function(i, name){
     '@owner': 'OWNER',
     '@self': 'SELF',
     '@friends': 'FRIENDS',
-    '@all': 'ALL'
+    '@all': 'ALL',
+    '@me/@friends': 'VIEWER_FRIENDS',
+    '@viewer/@friends': 'VIEWER_FRIENDS',
+    '@owner/@friends': 'OWNER_FRIENDS'
   };
 
   var filter = {
@@ -4133,7 +4248,7 @@ jQuery.each([ "Height", "Width" ], function(i, name){
   
   $.extend($._xhr.getPeople.prototype, $._xhr.prototype, {
   
-    send: function(data, dataType) {
+    send: function(data) {
       var self = this, query = parseUrl(self.url);
       
       var idspec = identify(query);
@@ -4233,7 +4348,7 @@ jQuery.each([ "Height", "Width" ], function(i, name){
   
   $.extend($._xhr.getAppData.prototype, $._xhr.prototype, {
   
-    send: function(data, dataType) {
+    send: function(data) {
       var self = this, query = parseUrl(self.url);
 
       var idspec = identify(query);
@@ -4286,7 +4401,7 @@ jQuery.each([ "Height", "Width" ], function(i, name){
   
   $.extend($._xhr.postAppData.prototype, $._xhr.prototype, {
   
-    send: function(data, dataType) {
+    send: function(data) {
       var self = this, query = parseUrl(self.url);
 
       var idspec = identify(query);
@@ -4321,5 +4436,160 @@ jQuery.each([ "Height", "Width" ], function(i, name){
   });
 
   $.ajaxSettings.xhr.addRoute('POST', '/appdata/', $._xhr.postAppData);
+
+  /**
+   * getActivity
+   */
+if (opensocial) {
+  
+  $._xhr.getActivity = function() {
+    this.initialize();
+  };
+  
+  $.extend($._xhr.getActivity.prototype, $._xhr.prototype, {
+  
+    send: function(data) {
+      var self = this, query = parseUrl(self.url);
+
+      var idspec = identify(query);
+
+      var req = opensocial.newDataRequest();
+      req.add(req.newFetchActivitiesRequest(idspec), 'data');
+      req.send(function(res) {
+        self.readyState = 4; // DONE
+
+        var error = errorify(res);
+        if (error) {
+          self.status = error.status;
+          self.statusText = error.statusText;
+          self.responseText = error.reason;
+
+        } else {
+          var item = res.get('data');
+          var collection = item.getData();
+
+          var activities = $.map(collection.asArray(), function(activity) {
+            return objectify(activity);
+          });
+          activities.startIndex = 0; // collection.getOffset();
+          activities.itemsPerPage = 20;
+          activities.totalResults = collection.getTotalSize();
+
+          self.status = code['ok'];
+          self.statusText = 'ok';
+          self.responseData = activities;
+        }
+      });
+    }
+    
+  });
+
+  $.ajaxSettings.xhr.addRoute('GET', '/activities/', $._xhr.getActivity);
+
+} // if (opensocial) {
+
+  /**
+   * postActivity
+   */
+if (opensocial) {
+  
+  $._xhr.postActivity = function() {
+    this.initialize();
+  };
+  
+  $.extend($._xhr.postActivity.prototype, $._xhr.prototype, {
+  
+    send: function(data) {
+      var self = this;
+
+      data.mediaItems = $.map(data.mediaItems || [], function(mediaItem) {
+        return opensocial.newMediaItem(
+          mediaItem[opensocial.MediaItem.Field.MIME_TYPE], // mimeType
+          mediaItem[opensocial.MediaItem.Field.URL], // url
+          mediaItem // opt_params
+        );
+      });
+
+      opensocial.requestCreateActivity(
+        opensocial.newActivity(data),
+        opensocial.CreateActivityPriority.HIGH,
+      function(res) {
+        self.readyState = 4; // DONE
+
+        var error = errorify(
+          new opensocial.DataResponse({ data: res }, res.hadError())
+        );
+        if (error) {
+          self.status = error.status;
+          self.statusText = error.statusText;
+          self.responseText = error.reason;
+        } else {
+          self.status = code['ok'];
+          self.statusText = 'ok';
+          self.responseData = res.getData() || {};
+        }
+      });
+    }
+    
+  });
+
+  $.ajaxSettings.xhr.addRoute('POST', '/activities/', $._xhr.postActivity);
+
+} // if (opensocial) {
+
+  /**
+   * postMessage
+   */
+if (opensocial) {
+  
+  $._xhr.postMessage = function() {
+    this.initialize();
+  };
+  
+  $.extend($._xhr.postMessage.prototype, $._xhr.prototype, {
+  
+    send: function(data) {
+      var self = this;
+
+      var recipients = data.recipients;
+      if (typeof(recipients) == 'string')
+        recipients = recipients.split(',');
+      recipients = $.map(recipients, function(recipient) {
+        return selector[recipient] || recipient;
+      });
+      if (recipients.length <= 1)
+        recipients = recipients[0];
+
+      var message = opensocial.newMessage(
+        data[opensocial.Message.Field.BODY],
+        data
+      );
+
+      opensocial.requestSendMessage(
+        recipients,
+        message,
+      function(res) {
+        self.readyState = 4; // DONE
+
+        var error = errorify(
+          new opensocial.DataResponse({ data: res }, res.hadError())
+        );
+        if (error) {
+          self.status = error.status;
+          self.statusText = error.statusText;
+          self.responseText = error.reason;
+        } else {
+          self.status = code['ok'];
+          self.statusText = 'ok';
+          self.responseData = res.getData() || {};
+        }
+      });
+    }
+    
+  });
+
+  $.ajaxSettings.xhr.addRoute('POST', '/messages/', $._xhr.postMessage);
+
+} // if (opensocial) {
 
 })(jQuery);
