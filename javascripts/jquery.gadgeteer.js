@@ -27,27 +27,53 @@ $.gadgeteer = function(callback, options) {
     }
 
     if (!options.noAjaxForms) {
+      // Making sure submit input element values are submitted
+      $('form input[type=submit]').livequery('click', function(e) {
+        $(this).parents('form:eq(0)').data('submitClicked', $(this));
+      });
       // All forms will submit through an ajax call
       $('form').livequery('submit', function(e) {
         e.preventDefault();
         var form = $(this);
         var action = form.attr('action');
         var target = form.hasClass('silent') ? null : $.gadgeteer.defaultTarget;
+        var params = [$.param(form.formToArray()), $.param($.gadgeteer.viewer.osParams()), $.param($.gadgeteer.owner.osParams())];
+        var submit = form.data('submitClicked');
+        if (submit) {
+          if (submit.attr('name')) {
+            var param = {};
+            param[submit.attr('name')] = submit.val();
+            params.push($.param(param));
+          }
+          if ($.gadgeteer.options.submitSendingMessage) {
+            submit.data('oldValue', submit.val());
+            submit.val($.gadgeteer.options.submitSendingMessage).get(0).disabled = true;
+          }
+          form.data('submitClicked', null);
+        }
         $.ajax({
           url: action.charAt(0) == '/' ? $.gadgeteer.host + action : action,
           type: form.attr('method') || 'GET',
-          data: [$.param(form.formToArray()), $.param($.gadgeteer.viewer.osParams()), $.param($.gadgeteer.owner.osParams())].join("&"),
+          data: params.join("&"),
           dataType: 'html',
           auth: 'SIGNED',
-          target: target
+          target: target,
+          complete: function(request, status) {
+            if (submit) {
+              var oldValue = submit.data('oldValue');
+              if (oldValue) {
+                submit.val(oldValue).get(0).disabled = false;
+                submit.data('oldValue', null);
+              }
+            }
+          }
         });
       });
     }
 
     // Setup ajax event callbacks
     $(document).ajaxSend(function(e, request, settings) {
-      if (settings.target) {
-        // TODO: make this customizable by `loading` callback in options
+      if (settings.target && $.gadgeteer.options.loadingMessage) {
         $(settings.target).append($.gadgeteer.loadingElem());
       }
     }).ajaxSuccess(function(e, request, settings) {
@@ -61,7 +87,6 @@ $.gadgeteer = function(callback, options) {
       // Do another adjustHeight in 250ms just to be sure
       setTimeout(function() {$(window).adjustHeight();}, 250);
     }).ajaxError(function(e, request, settings, exception) {
-      console.log(request, settings, exception);
       if (settings.target) {
         var html = request.responseText;
         $(settings.target).html(html);
@@ -130,10 +155,9 @@ $.extend($.gadgeteer, {
   loadingElem: function() {
     if ($.gadgeteer.LOADING_ELEM) return $.gadgeteer.LOADING_ELEM;
 
-    // TODO: make this customizable
     var loading = $('#loading');
     if (loading.length < 1) {
-      loading = $('<div id="loading">Az oldal tölt <span class="ellipses">…</span></div>');
+      loading = $('<div id="loading">'+$.gadgeteer.options.loadingMessage+'</div>');
     }
     return $.gadgeteer.LOADING_ELEM = loading;
   },
