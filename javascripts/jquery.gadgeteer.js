@@ -286,7 +286,9 @@ $.extend($.gadgeteer, {
   },
 
   navigateRequest: function(view, params, ownerId, e) {
-    e.preventDefault();
+    if (e !== undefined) {
+      e.preventDefault();
+    }
     view = gadgets.views.getSupportedViews()[view];
     gadgets.views.requestNavigateTo(view, params, ownerId); 
   },
