@@ -1,7 +1,7 @@
 /*! Copyright (c) 2009 Virgo Systems Kft. (http://virgo.hu)
  * Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 0.2.5
+ * Version: 0.2.6
  * Requires opensocial-jQuery 1.0+
  */
 
