@@ -118,6 +118,8 @@ $.gadgeteer = function(callback, options) {
         var params = gadgets.views.getParams();
         var navTo = params.navigateTo;
         if (navTo) {
+          // Tell the callback that we're navigating away
+          callback(true);
           $.gadgeteer.simpleRequest(navTo, params.signedNavigate);
         } else {
           callback();
