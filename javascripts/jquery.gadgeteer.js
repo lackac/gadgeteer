@@ -113,7 +113,7 @@ $.gadgeteer = function(callback, options) {
 
     // Wait for everything to load then call the callback
     setTimeout(function() {
-      if ($.gadgeteer.viewer && $.gadgeteer.owner) {
+      if ($.gadgeteer.viewer && $.gadgeteer.owner && $.gadgeteer.data) {
         // Navigate away if params tell so
         var params = gadgets.views.getParams();
         var navTo = params.navigateTo;
@@ -136,6 +136,23 @@ $.gadgeteer = function(callback, options) {
     $.getData('/people/@owner/@self', function(data, status) {
       $.gadgeteer.owner = data[0];
       $.gadgeteer.owner.osParams = function() {return $.gadgeteer._osParams.call($.gadgeteer.owner, 'owner')};
+    });
+    $.getData('/appdata/', function(data, status) {
+      for (var id in data) {
+        data = data[id];
+        break;
+      }
+      $.gadgeteer.data = function(key, value) {
+        if (value === undefined) {
+          return data[key];
+        } else {
+          data[key] = value;
+          var params = {};
+          params[key] = value;
+          $.postData('/appdata/', params);
+          return value;
+        }
+      };
     });
   }
 }
