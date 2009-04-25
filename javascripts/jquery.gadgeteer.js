@@ -51,6 +51,7 @@ $.gadgeteer = function(callback, options) {
           }
           form.data('submitClicked', null);
         }
+        action = $.gadgeteer.expandUri(action);
         $.ajax({
           url: action.charAt(0) == '/' ? $.gadgeteer.host + action : action,
           type: form.attr('method') || 'GET',
@@ -100,10 +101,15 @@ $.gadgeteer = function(callback, options) {
         var href = request.getResponseHeader('Location') || request.getResponseHeader('location');
         // hackish way to determine if we have an array (depends on the fact that the real href must be longer than 1 char)
         if (!href.charAt) href = href[0];
+        href = $.gadgeteer.expandUri(href);
+        var params = '';
+        if (settings.auth == 'signed' || !$.gadgeteer.options.dontAddOsParams) {
+          params = $.param($.gadgeteer.viewer.osParams()) + '&' + $.param($.gadgeteer.owner.osParams())
+        }
         $.ajax({
           url: href.charAt(0) == '/' ? $.gadgeteer.host + href : href,
           type: 'GET',
-          data: $.param($.gadgeteer.viewer.osParams()) + '&' + $.param($.gadgeteer.owner.osParams()),
+          data: params,
           dataType: 'html',
           oauth: settings.auth,
           target: settings.target
@@ -120,7 +126,7 @@ $.gadgeteer = function(callback, options) {
         if (navTo) {
           // Tell the callback that we're navigating away
           callback(true);
-          $.gadgeteer.simpleRequest(navTo, params.signedNavigate);
+          $.gadgeteer.simpleRequest(navTo, {signed: params.signedNavigate});
         } else {
           callback();
         }
@@ -181,21 +187,41 @@ $.extend($.gadgeteer, {
     return $.gadgeteer.LOADING_ELEM = loading;
   },
 
-  simpleRequest: function(href, signed) {
+  expandUri: function(uri) {
+    if (!$.gadgeteer.options.dontExpand) {
+      if ($.gadgeteer.viewer) {
+        uri = uri.replace(/(?:(\/)|{)viewer(?:}|([\/\?#]|$))/g, '$1'+$.gadgeteer.viewer.id.replace(/\./g, '-')+'$2');
+      }
+      if ($.gadgeteer.owner) {
+        uri = uri.replace(/(?:(\/)|{)owner(?:}|([\/\?#]|$))/g, '$1'+$.gadgeteer.owner.id.replace(/\./g, '-')+'$2');
+      }
+    }
+    return uri;
+  },
+
+  simpleRequest: function(href, options) {
     var params = {}
-    if (href.indexOf('os_viewer_id') == -1) params.os_viewer_id = $.gadgeteer.viewer.id;
-    if (href.indexOf('os_owner_id') == -1) params.os_owner_id = $.gadgeteer.owner.id;
-    if (signed) {
+    if (options === undefined) options = {};
+    if (options.addProfileIds) {
+      if (href.indexOf('os_viewer_id') == -1) params.os_viewer_id = $.gadgeteer.viewer.id;
+      if (href.indexOf('os_owner_id') == -1) params.os_owner_id = $.gadgeteer.owner.id;
+    }
+    if (options.signed) {
       params = $.extend(false, params, $.gadgeteer.viewer.osParams(), $.gadgeteer.owner.osParams());
     }
-    $.ajax({
-      type: 'GET',
-      data: $.param(params),
-      url: href.charAt(0) == '/' ? $.gadgeteer.host + href : href,
-      dataType: 'html',
-      oauth: signed && 'signed',
-      target: $($.gadgeteer.defaultTarget)
-    });
+    href = $.gadgeteer.expandUri(href);
+    options = $.extend(
+      { // defaults
+        type: 'GET',
+        dataType: 'html'
+      }, options, { // force options
+        data: $.param(params),
+        url: href.charAt(0) == '/' ? $.gadgeteer.host + href : href,
+        oauth: options.signed && 'signed',
+        target: options.target === undefined ? $($.gadgeteer.defaultTarget) : options.target
+      }
+    );
+    $.ajax(options);
   },
 
   regularRequest: function(e) {
@@ -220,12 +246,14 @@ $.extend($.gadgeteer, {
     var params = {};
     var method = link.hasClass('post') ? 'post' : link.hasClass('put') ? 'put' : link.hasClass('delete') ? 'delete' : 'get';
     if (method != 'get') params._method = method;
-    if (link.hasClass('signed'))
+    if (link.hasClass('signed')) {
       params = $.extend(false, params, $.gadgeteer.viewer.osParams(), $.gadgeteer.owner.osParams());
-    else
+    } else if (!$.gadgeteer.options.dontAddOsParams) {
       params = $.extend(false, params, {os_viewer_id: $.gadgeteer.viewer.id, os_owner_id: $.gadgeteer.owner.id});
+    }
 
     var target = link.hasClass('silent') ? null : $.gadgeteer.defaultTarget;
+    href = $.gadgeteer.expandUri(href);
     $.ajax({
       type: method == 'get' ? 'GET' : 'POST',
       url: href,
