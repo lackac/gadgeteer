@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{gadgeteer}
-  s.version = "0.2.4"
+  s.version = "0.2.6"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Laszlo Bacsi"]
-  s.date = %q{2009-03-20}
+  s.date = %q{2009-04-26}
   s.default_executable = %q{gadgeteer}
   s.description = %q{Making it easy to develop OpenSocial gadgets with Rails or Sinatra.}
   s.email = %q{bacsi.laszlo@virgo.hu}
