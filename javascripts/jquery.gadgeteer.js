@@ -119,7 +119,7 @@ $.gadgeteer = function(callback, options) {
 
     // Wait for everything to load then call the callback
     setTimeout(function() {
-      if ($.gadgeteer.viewer && $.gadgeteer.owner && $.gadgeteer.data) {
+      if ($.gadgeteer.viewer && $.gadgeteer.owner && $.gadgeteer.data && $.gadgeteer.owner.data) {
         // Navigate away if params tell so
         var params = gadgets.views.getParams();
         var navTo = params.navigateTo;
@@ -139,28 +139,49 @@ $.gadgeteer = function(callback, options) {
     // Get information about the viewer and owner
     $.getData('/people/@viewer/@self', function(data, status) {
       $.gadgeteer.viewer = data[0];
-      $.gadgeteer.viewer.osParams = function() {return $.gadgeteer._osParams.call($.gadgeteer.viewer, 'viewer')};
+      $.gadgeteer.viewer.osParams = function() {
+        return $.gadgeteer._osParams.call($.gadgeteer.viewer, 'viewer')
+      };
+      $.getData('/appdata/@viewer', function(data, status) {
+        for (var id in data) {
+          data = data[id];
+          break;
+        }
+        $.gadgeteer.data = $.gadgeteer.viewer.data = function(key, value, cb) {
+          if (value === undefined) {
+            return data[key];
+          } else {
+            data[key] = value;
+            var params = {};
+            params[key] = value;
+            $.postData('/appdata/@viewer', params, cb);
+            return value;
+          }
+        };
+      });
     });
     $.getData('/people/@owner/@self', function(data, status) {
       $.gadgeteer.owner = data[0];
-      $.gadgeteer.owner.osParams = function() {return $.gadgeteer._osParams.call($.gadgeteer.owner, 'owner')};
-    });
-    $.getData('/appdata/', function(data, status) {
-      for (var id in data) {
-        data = data[id];
-        break;
-      }
-      $.gadgeteer.data = function(key, value) {
-        if (value === undefined) {
-          return data[key];
-        } else {
-          data[key] = value;
-          var params = {};
-          params[key] = value;
-          $.postData('/appdata/', params);
-          return value;
-        }
+      $.gadgeteer.owner.osParams = function() {
+        return $.gadgeteer._osParams.call($.gadgeteer.owner, 'owner');
       };
+      $.getData('/appdata/@owner', function(data, status) {
+        for (var id in data) {
+          data = data[id];
+          break;
+        }
+        $.gadgeteer.owner.data = function(key, value, cb) {
+          if (value === undefined) {
+            return data[key];
+          } else {
+            data[key] = value;
+            var params = {};
+            params[key] = value;
+            $.postData('/appdata/@owner', params, cb);
+            return value;
+          }
+        };
+      });
     });
   }
 }
