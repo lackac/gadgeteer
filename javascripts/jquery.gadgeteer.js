@@ -221,7 +221,7 @@ $.extend($.gadgeteer, {
   },
 
   simpleRequest: function(href, options) {
-    var params = {}
+    var params = (options.data === undefined ? {} : options.data);
     if (options === undefined) options = {};
     if (options.addProfileIds) {
       if (href.indexOf('os_viewer_id') == -1) params.os_viewer_id = $.gadgeteer.viewer.id;
