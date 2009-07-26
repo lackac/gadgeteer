@@ -1,4 +1,4 @@
-/*! Copyright (c) 2009 Virgo Systems Kft. (http://virgo.hu)
+/*! Copyright (c) 2009 László Bácsi (http://icanscale.com)
  * Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  *
  * Version: 0.2.6

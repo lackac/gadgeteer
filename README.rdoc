@@ -46,4 +46,4 @@ If there are OpenSocial related request parameters, you can access them with the
     @secret_notes = SecretNote.find_by_profile_id(open_social[:viewer_id])
   end
 
-Copyright (c) 2009 Virgo Systems Kft., released under the MIT license
+Copyright (c) 2009 László Bácsi, released under the MIT license

@@ -31,7 +31,7 @@ $usage = <<USAGE
   László Bácsi
 
 == Copyright
-  Copyright (c) 2009 Virgo Systems Kft. Licensed under the MIT License:
+  Copyright (c) 2009 László Bácsi. Licensed under the MIT License:
   http://www.opensource.org/licenses/mit-license.php
 USAGE
 
