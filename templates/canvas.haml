@@ -1,14 +1,22 @@
+- backend_host = "#{request.scheme}://#{request.host}"
 %html
   %head
     - %w{opensocial-jquery jquery.livequery jquery.gadgeteer}.each do |jsfile|
-      %script{:src => "/javascripts/#{jsfile}.js", :type => "text/javascript"}
-    %script{:type => "text/javascript"}
-<% if @options.sinatra %>
-      == backendHost = "#{request.scheme}://#{request.host}";
-<% else %>
-      == backendHost = "#{request.protocol}#{request.host_with_port}";
-<% end %>
-    %script{:src => "/javascripts/<%= @options.singular %>.js", :type => "text/javascript"}
+      %script(src="/javascripts/#{jsfile}.js" type="text/javascript")
+    %script(type="text/javascript")
+      == backendHost = "#{backend_host}";
+    %script(src="/javascripts/gadget.js" type="text/javascript")
+    %script(src="/javascripts/<%= @options.singular %>.js"
+            type="text/javascript")
+
+    %script(type="text/os-data"
+            xmlns:os="http://ns.opensocial.org/2008/markup")
+      %os:OwnerRequest(key="owner")
+      %os:ViewerRequest(key="viewer")
+      %os:PersonAppDataRequest(key="ownerData" method="appdata.get"
+                               userId="@owner" appId="@app")
+      %os:PersonAppDataRequest(key="viewerData" method="appdata.get"
+                               userId="@viewer" appId="@app")
   %body
     .container
       #header
