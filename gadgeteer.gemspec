@@ -9,11 +9,11 @@ Gem::Specification.new do |s|
   s.date = %q{2009-04-26}
   s.default_executable = %q{gadgeteer}
   s.description = %q{Making it easy to develop OpenSocial gadgets with Rails or Sinatra.}
-  s.email = %q{bacsi.laszlo@virgo.hu}
+  s.email = %q{lackac@icanscale.com}
   s.executables = ["gadgeteer"]
   s.files = ["lib/gadgeteer.rb", "lib/sinatra/gadgeteer.rb", "bin/gadgeteer", "LICENSE", "Rakefile", "README.rdoc", "VERSION.yml", "test/gadgeteer_test.rb", "test/test_helper.rb", "templates/canvas.haml", "templates/gadget.haml", "templates/gadget.js", "templates/gadget.rb", "templates/gadget.yml", "templates/gadgets_controller.rb", "javascripts/jquery.gadgeteer.js", "javascripts/jquery.livequery.js", "javascripts/opensocial-jquery.js", "rails/init.rb"]
   s.has_rdoc = true
-  s.homepage = %q{http://github.com/virgo/gadgeteer}
+  s.homepage = %q{http://github.com/lackac/gadgeteer}
   s.rdoc_options = ["--inline-source", "--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.1}
