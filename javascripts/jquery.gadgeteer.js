@@ -1,7 +1,7 @@
 /*! Copyright (c) 2009 László Bácsi (http://icanscale.com)
  * Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 0.3
+ * Version: 0.3-pre
  * Requires opensocial-jQuery 1.0.4+
  */
 
