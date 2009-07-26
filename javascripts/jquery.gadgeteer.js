@@ -1,8 +1,8 @@
 /*! Copyright (c) 2009 László Bácsi (http://icanscale.com)
  * Licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 0.2.6
- * Requires opensocial-jQuery 1.0+
+ * Version: 0.3
+ * Requires opensocial-jQuery 1.0.4+
  */
 
 (function($) {
@@ -134,62 +134,6 @@ $.gadgeteer = function(callback, options) {
         setTimeout(arguments.callee, 50);
       }
     }, 50);
-
-  } else { // if called with no arguments it means we're initializing
-    // Get information about the viewer and owner
-    var osd = opensocial.data.DataContext;
-    function finalizeData(person, data) {
-      $.gadgeteer[person].data = function(key, value, cb) {
-        if (value === undefined) {
-          return data[key];
-        } else {
-          data[key] = value;
-          var params = {};
-          params[key] = value;
-          $.postData('/appdata/@'+person, params, cb);
-          return value;
-        }
-      };
-      if (person == 'viewer') {
-        $.gadgeteer.data = $.gadgeteer[person].data;
-      }
-    }
-    function finalizePerson(person) {
-      $.gadgeteer[person].osParams = function() {
-        var params = {};
-        for (var attr in $.gadgeteer[person]) {
-          if (!$.isFunction($.gadgeteer[person][attr])) {
-            var underscore = attr.replace(/([A-Z])/, '_$1').toLowerCase();
-            params['os_'+person+'_'+underscore] = $.gadgeteer[person][attr];
-          }
-        }
-        return params;
-      };
-      var data;
-      if (osd && (data = osd.getDataSet(person+'Data'))) {
-        finalizeData(person, data);
-      } else {
-        $.getData('/appdata/@'+person, function(data, status) {
-          for (var id in data) {
-            data = data[id];
-            break;
-          }
-          finalizeData(person, data);
-        });
-      }
-    }
-    function setupPerson(person) {
-      if (osd && ($.gadgeteer[person] = osd.getDataSet(person))) {
-        finalizePerson(person);
-      } else {
-        $.getData('/people/@'+person+'/@self', function(data, status) {
-          $.gadgeteer[person] = data[0];
-          finalizePerson(person);
-        });
-      }
-    }
-    setupPerson('viewer');
-    setupPerson('owner');
   }
 }
 
@@ -315,6 +259,61 @@ $.extend($.gadgeteer, {
 });
 
 // Initialize gadgeteer
-$($.gadgeteer);
+$(function() {
+  // Get information about the viewer and owner
+  var osd = opensocial.data.DataContext;
+  function finalizeData(person, data) {
+    $.gadgeteer[person].data = function(key, value, cb) {
+      if (value === undefined) {
+        return data[key];
+      } else {
+        data[key] = value;
+        var params = {};
+        params[key] = value;
+        $.postData('/appdata/@'+person, params, cb);
+        return value;
+      }
+    };
+    if (person == 'viewer') {
+      $.gadgeteer.data = $.gadgeteer[person].data;
+    }
+  }
+  function finalizePerson(person) {
+    $.gadgeteer[person].osParams = function() {
+      var params = {};
+      for (var attr in $.gadgeteer[person]) {
+        if (!$.isFunction($.gadgeteer[person][attr])) {
+          var underscore = attr.replace(/([A-Z])/, '_$1').toLowerCase();
+          params['os_'+person+'_'+underscore] = $.gadgeteer[person][attr];
+        }
+      }
+      return params;
+    };
+    var data;
+    if (osd && (data = osd.getDataSet(person+'Data'))) {
+      finalizeData(person, data);
+    } else {
+      $.getData('/appdata/@'+person, function(data, status) {
+        for (var id in data) {
+          data = data[id];
+          break;
+        }
+        finalizeData(person, data);
+      });
+    }
+  }
+  function setupPerson(person) {
+    if (osd && ($.gadgeteer[person] = osd.getDataSet(person))) {
+      finalizePerson(person);
+    } else {
+      $.getData('/people/@'+person+'/@self', function(data, status) {
+        $.gadgeteer[person] = data[0];
+        finalizePerson(person);
+      });
+    }
+  }
+  setupPerson('viewer');
+  setupPerson('owner');
+});
 
 })(jQuery);
