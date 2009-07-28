@@ -151,10 +151,10 @@ $.extend($.gadgeteer, {
   expandUri: function(uri) {
     if (!$.gadgeteer.options.dontExpand) {
       if ($.gadgeteer.viewer) {
-        uri = uri.replace(/(?:(\/)|{)viewer(?:}|([\/\?#]|$))/g, '$1'+$.gadgeteer.viewer.id.replace(/\./g, '-')+'$2');
+        uri = uri.replace(/(?:(\/)|{)viewer(?:}|([\/\?#]|$))/g, '$1'+$.gadgeteer.viewer.backendId+'$2');
       }
       if ($.gadgeteer.owner) {
-        uri = uri.replace(/(?:(\/)|{)owner(?:}|([\/\?#]|$))/g, '$1'+$.gadgeteer.owner.id.replace(/\./g, '-')+'$2');
+        uri = uri.replace(/(?:(\/)|{)owner(?:}|([\/\?#]|$))/g, '$1'+$.gadgeteer.owner.backendId+'$2');
       }
     }
     return uri;
@@ -289,6 +289,11 @@ $(function() {
       }
       return params;
     };
+    if (!$.gadgeteer.options.dontSwapDots) {
+      $.gadgeteer[person].backendId = $.gadgeteer[person].id.replace(/\./g, '-');
+    } else {
+      $.gadgeteer[person].backendId = $.gadgeteer[person].id;
+    }
     var data;
     if (osd && (data = osd.getDataSet(person+'Data'))) {
       finalizeData(person, data);
