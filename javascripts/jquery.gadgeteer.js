@@ -53,7 +53,7 @@ $.gadgeteer = function(callback, options) {
         }
         action = $.gadgeteer.expandUri(action);
         $.ajax({
-          url: action.charAt(0) == '/' ? $.gadgeteer.host + action : action,
+          url: action,
           type: form.attr('method') || 'GET',
           data: params.join("&"),
           dataType: 'html',
@@ -107,7 +107,7 @@ $.gadgeteer = function(callback, options) {
           params = $.param($.gadgeteer.viewer.osParams()) + '&' + $.param($.gadgeteer.owner.osParams())
         }
         $.ajax({
-          url: href.charAt(0) == '/' ? $.gadgeteer.host + href : href,
+          url: href,
           type: 'GET',
           data: params,
           dataType: 'html',
@@ -148,7 +148,9 @@ $.extend($.gadgeteer, {
     return $.gadgeteer.LOADING_ELEM = loading;
   },
 
-  expandUri: function(uri) {
+  expandUri: function(uri, options) {
+    if (uri.charAt(0) == '/') uri = $.gadgeteer.host + uri;
+    if (!options) options = {};
     if (!$.gadgeteer.options.dontExpand) {
       if ($.gadgeteer.viewer) {
         uri = uri.replace(/(?:(\/)|{)viewer(?:}|([\/\?#]|$))/g, '$1'+$.gadgeteer.viewer.backendId+'$2');
@@ -156,6 +158,15 @@ $.extend($.gadgeteer, {
       if ($.gadgeteer.owner) {
         uri = uri.replace(/(?:(\/)|{)owner(?:}|([\/\?#]|$))/g, '$1'+$.gadgeteer.owner.backendId+'$2');
       }
+    }
+    if (options.addParams) {
+      var params = $.param($.extend(false, $.gadgeteer.viewer.osParams(), $.gadgeteer.owner.osParams()));
+      uri += (uri.indexOf('?') != -1 ? '&' : '?') + params;
+    } else if (options.addProfileIds) {
+      var params = {};
+      if (uri.indexOf('os_viewer_id') == -1) params.os_viewer_id = $.gadgeteer.viewer.id;
+      if (uri.indexOf('os_owner_id') == -1) params.os_owner_id = $.gadgeteer.owner.id;
+      uri += (uri.indexOf('?') != -1 ? '&' : '?') + $.param(params);
     }
     return uri;
   },
@@ -177,7 +188,7 @@ $.extend($.gadgeteer, {
         dataType: 'html'
       }, options, { // force options
         data: $.param(params),
-        url: href.charAt(0) == '/' ? $.gadgeteer.host + href : href,
+        url: href,
         oauth: options.signed && 'signed',
         target: options.target === undefined ? $($.gadgeteer.defaultTarget) : options.target
       }
@@ -201,8 +212,6 @@ $.extend($.gadgeteer, {
       var l = _href.search(host)+host.length;
       href = _href.substring(l);
     }
-
-    if (href.charAt(0) == '/') href = $.gadgeteer.host + href;
 
     var params = {};
     var method = link.hasClass('post') ? 'post' : link.hasClass('put') ? 'put' : link.hasClass('delete') ? 'delete' : 'get';
