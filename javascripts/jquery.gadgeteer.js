@@ -271,10 +271,15 @@ $.extend($.gadgeteer, {
 $(function() {
   // Get information about the viewer and owner
   var osd = opensocial.data.DataContext;
-  function finalizeData(person, data) {
+  function finalizeData(person, data, fromosd) {
     for (var id in data) {
       data = data[id];
       break;
+    }
+    if (fromosd) {
+      for (var key in data) {
+        data[key] = gadgets.json.parse(data[key]);
+      }
     }
     $.gadgeteer[person].data = function(key, value, cb) {
       if (value === undefined) {
@@ -309,7 +314,7 @@ $(function() {
     }
     var data;
     if (osd && (data = osd.getDataSet(person+'Data'))) {
-      finalizeData(person, data);
+      finalizeData(person, data, true);
     } else {
       $.getData('/appdata/@'+person, function(data, status) {
         finalizeData(person, data);
