@@ -302,7 +302,14 @@ $(function() {
       for (var attr in $.gadgeteer[person]) {
         if (!$.isFunction($.gadgeteer[person][attr])) {
           var underscore = attr.replace(/([A-Z])/, '_$1').toLowerCase();
-          params['os_'+person+'_'+underscore] = $.gadgeteer[person][attr];
+          if (typeof $.gadgeteer[person][attr] == "object") {
+            for (subattr in $.gadgeteer[person][attr]) {
+              var subus = subattr.replace(/([A-Z])/, '_$1').toLowerCase();
+              params['os_'+person+'_'+underscore+'['+subus+']'] = $.gadgeteer[person][attr][subattr];
+            }
+          } else {
+            params['os_'+person+'_'+underscore] = $.gadgeteer[person][attr];
+          }
         }
       }
       return params;
