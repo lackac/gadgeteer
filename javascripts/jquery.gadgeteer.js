@@ -263,8 +263,14 @@ $.extend($.gadgeteer, {
      //console.log('calling DEFAULT ', def, ' link behaviour for ', link, ' with ', e);
      $.gadgeteer[def+'Request'].call(link, e);
     }
-  }
+  },
 
+  appLink: function(parameters) {
+    return gadgets.views.bind(gadgets.config.get('views')['canvas'].urlTemplate, {
+      appId: document.location.host.match(/(\d+)\./)[1],
+      viewParams: encodeURIComponent(gadgets.json.stringify(parameters))
+    });
+  }
 });
 
 // Initialize gadgeteer
