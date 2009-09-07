@@ -285,10 +285,27 @@ $(function() {
       if (value === undefined) {
         return data[key];
       } else {
+        var oldValue = data[key];
         data[key] = value;
         var params = {};
         params[key] = value;
-        $.postData('/appdata/@'+person, params, cb);
+        var tries = 3;
+        (function() {
+          var callee = arguments.callee;
+          $.ajax({
+            type: 'POST', url: '/appdata/@'+person, data: params,
+            dataType: 'data', success: cb,
+            error: function(event, request, settings, thrownError) {
+              console.warn('error requesting appdata update (try #'+(3-tries+1)+')', event, request, settings, thrownError);
+              if (tries--) {
+                callee();
+              } else { // resetting old value
+                data[key] = oldValue;
+                cb(null, 'failure');
+              }
+            }
+          });
+        })();
         return value;
       }
     };
