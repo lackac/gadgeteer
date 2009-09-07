@@ -365,4 +365,8 @@ $(function() {
   setupPerson('owner');
 });
 
+if (typeof $g == "undefined") {
+  $g = $.gadgeteer;
+}
+
 })(jQuery);
