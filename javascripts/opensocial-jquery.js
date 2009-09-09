@@ -5542,9 +5542,9 @@ jQuery.each([ "Height", "Width" ], function(i, name){
   $.extend($._xhr.postMessage.prototype, $._xhr.prototype, {
   
     send: function(data) {
-      var self = this;
+      var self = this, query = parseUrl(self.url);
 
-      var recipients = data.recipients;
+      var recipients = query.userId || data.recipients;
       if (typeof(recipients) == 'string')
         recipients = recipients.split(',');
       recipients = $.map(recipients, function(recipient) {
@@ -5552,6 +5552,8 @@ jQuery.each([ "Height", "Width" ], function(i, name){
       });
       if (recipients.length <= 1)
         recipients = recipients[0];
+
+      delete data.recipients;
 
       var message = opensocial.newMessage(
         data[opensocial.Message.Field.BODY],
