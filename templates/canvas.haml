@@ -1,7 +1,7 @@
 - backend_host = "#{request.scheme}://#{request.host}"
 %html
   %head
-    - %w{opensocial-jquery jquery.livequery jquery.gadgeteer}.each do |jsfile|
+    - %w{opensocial-jquery jquery.livequery jquery.form jquery.gadgeteer}.each do |jsfile|
       %script(src="/javascripts/#{jsfile}.js" type="text/javascript")
     %script(type="text/javascript")
       == backendHost = "#{backend_host}";
