@@ -2,16 +2,16 @@
 
 Gem::Specification.new do |s|
   s.name = %q{gadgeteer}
-  s.version = "0.2.99"
+  s.version = "0.3.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Laszlo Bacsi"]
-  s.date = %q{2009-07-27}
+  s.date = %q{2009-09-17}
   s.default_executable = %q{gadgeteer}
   s.description = %q{Making it easy to develop OpenSocial gadgets with Rails or Sinatra.}
   s.email = %q{bacsi.laszlo@virgo.hu}
   s.executables = ["gadgeteer"]
-  s.files = ["lib/gadgeteer.rb", "lib/sinatra/gadgeteer.rb", "bin/gadgeteer", "LICENSE", "Rakefile", "README.rdoc", "VERSION.yml", "test/gadgeteer_test.rb", "test/test_helper.rb", "templates/canvas.haml", "templates/gadget.haml", "templates/gadget.js", "templates/gadget.rb", "templates/gadget.yml", "templates/gadgets_controller.rb", "javascripts/jquery.gadgeteer.js", "javascripts/jquery.livequery.js", "javascripts/opensocial-jquery.js", "rails/init.rb"]
+  s.files = ["lib/gadgeteer.rb", "lib/sinatra/gadgeteer.rb", "bin/gadgeteer", "LICENSE", "Rakefile", "README.rdoc", "VERSION.yml", "test/gadgeteer_test.rb", "test/test_helper.rb", "templates/canvas.haml", "templates/gadget.haml", "templates/gadget.js", "templates/gadget.rb", "templates/gadget.yml", "templates/gadgets_controller.rb", "javascripts/jquery.form.js", "javascripts/jquery.gadgeteer.js", "javascripts/jquery.livequery.js", "javascripts/opensocial-jquery.js", "rails/init.rb"]
   s.has_rdoc = true
   s.homepage = %q{http://github.com/virgo/gadgeteer}
   s.rdoc_options = ["--inline-source", "--charset=UTF-8"]
