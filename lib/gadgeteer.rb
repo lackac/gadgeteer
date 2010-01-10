@@ -57,11 +57,11 @@ module Gadgeteer
 
   protected
     def public_key(key)
-      @@public_keys[key || :default]
+      self.class.public_keys[key || :default]
     end
 
     def oauth_secret(key)
-      @@oauth_secrets[key || :default]
+      self.class.oauth_secrets[key || :default]
     end
 
     def verify_signature!
