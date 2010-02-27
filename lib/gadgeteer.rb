@@ -13,7 +13,7 @@ end
 
 module Gadgeteer
   def self.included(base)
-    root = defined?(RAILS_ROOT) ? RAILS_ROOT : Sinatra::Application.root
+    root = defined?(Rails) ? Rails.root : Sinatra::Application.root
     if base.is_a?(Class)
       base.class_eval do
         @@public_keys = Hash[*Dir[File.join(root, 'config', 'certs', '*.cert')].map {|file| [File.basename(file)[0..-6], File.read(file)]}.flatten]
